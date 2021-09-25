@@ -1,7 +1,7 @@
 package simpledb;
 
 import java.io.Serializable;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -13,6 +13,10 @@ public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public TupleDesc td;
+    public RecordId rid;
+    public ArrayList<Field> tupleFields;
+
     /**
      * Create a new tuple with the specified schema (type).
      *
@@ -22,6 +26,12 @@ public class Tuple implements Serializable {
      */
     public Tuple(TupleDesc td) {
         // some code goes here
+        this.td = td;
+        this.rid = null;
+        this.tupleFields = new ArrayList<Field>();
+        for (int i = 0; i < this.td.numFields(); i++) {
+            this.tupleFields.add(null);
+        }
     }
 
     /**
@@ -29,7 +39,7 @@ public class Tuple implements Serializable {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return this.td;
     }
 
     /**
@@ -38,7 +48,7 @@ public class Tuple implements Serializable {
      */
     public RecordId getRecordId() {
         // some code goes here
-        return null;
+        return this.rid;
     }
 
     /**
@@ -49,6 +59,7 @@ public class Tuple implements Serializable {
      */
     public void setRecordId(RecordId rid) {
         // some code goes here
+        this.rid = rid;
     }
 
     /**
@@ -61,6 +72,10 @@ public class Tuple implements Serializable {
      */
     public void setField(int i, Field f) {
         // some code goes here
+        if (i < 0 || i >= this.td.numFields()){
+            throw  new IndexOutOfBoundsException();
+        }
+        this.tupleFields.set(i, f);
     }
 
     /**
@@ -71,7 +86,11 @@ public class Tuple implements Serializable {
      */
     public Field getField(int i) {
         // some code goes here
-        return null;
+        // since null already been set, no needs to check
+        if (i < 0 || i >= this.td.numFields()){
+            throw  new IndexOutOfBoundsException();
+        }
+        return this.tupleFields.get(i);
     }
 
     /**
@@ -84,7 +103,15 @@ public class Tuple implements Serializable {
      */
     public String toString() {
         // some code goes here
-        throw new UnsupportedOperationException("Implement this");
+        Iterator<Field> fields = this.fields();
+        String returnString = "";
+        while (fields.hasNext()) {
+            returnString += fields.next().toString();
+            if (fields.hasNext()) {
+                returnString += " ";
+            }
+        }
+        return returnString;
     }
 
     /**
@@ -94,7 +121,7 @@ public class Tuple implements Serializable {
     public Iterator<Field> fields()
     {
         // some code goes here
-        return null;
+        return this.tupleFields.iterator();
     }
 
     /**
@@ -103,5 +130,6 @@ public class Tuple implements Serializable {
     public void resetTupleDesc(TupleDesc td)
     {
         // some code goes here
+        this.td = td;
     }
 }
