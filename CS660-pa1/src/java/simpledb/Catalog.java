@@ -61,7 +61,7 @@ public class Catalog {
             this.fileArray.remove(tableIdInd);
             this.fileNameArray.remove(tableIdInd);
             this.pkArray.remove(tableIdInd);
-            this.tableIdArray.remove(tableIdInd);
+            this.tableIdArray.remove(Integer.valueOf(tableId));
         }
 
 
