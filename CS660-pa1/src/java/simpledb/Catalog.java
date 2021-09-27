@@ -64,10 +64,11 @@ public class Catalog {
             this.tableIdArray.remove(tableIdInd);
         }
 
+
         this.fileArray.add(file);
         this.fileNameArray.add(name);
         this.pkArray.add(pkeyField);
-        this.tableIdArray.add(tableId);
+        this.tableIdArray.add(file.getId());
     }
 
     public void addTable(DbFile file, String name) {
