@@ -22,8 +22,18 @@ public class Catalog {
      * Constructor.
      * Creates a new, empty catalog.
      */
+    private ArrayList<DbFile> fileArray;
+    private ArrayList<String> fileNameArray;
+    private ArrayList<String> pkArray;
+    private ArrayList<Integer> tableIdArray;
+
+
     public Catalog() {
         // some code goes here
+        this.fileArray = new ArrayList<DbFile>();
+        this.fileNameArray = new ArrayList<String>();
+        this.pkArray = new ArrayList<String>();
+        this.tableIdArray = new ArrayList<Integer>();
     }
 
     /**
@@ -37,6 +47,27 @@ public class Catalog {
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
+        int nameInd = this.fileNameArray.indexOf(name);
+        if (nameInd != -1) {
+            this.fileArray.remove(nameInd);
+            this.fileNameArray.remove(nameInd);
+            this.pkArray.remove(nameInd);
+            this.tableIdArray.remove(nameInd);
+        }
+
+        int tableId = file.getId();
+        int tableIdInd = this.tableIdArray.indexOf(tableId);
+        if (tableIdInd != -1) {
+            this.fileArray.remove(tableIdInd);
+            this.fileNameArray.remove(tableIdInd);
+            this.pkArray.remove(tableIdInd);
+            this.tableIdArray.remove(tableIdInd);
+        }
+
+        this.fileArray.add(file);
+        this.fileNameArray.add(name);
+        this.pkArray.add(pkeyField);
+        this.tableIdArray.add(tableId);
     }
 
     public void addTable(DbFile file, String name) {
@@ -58,9 +89,16 @@ public class Catalog {
      * Return the id of the table with a specified name,
      * @throws NoSuchElementException if the table doesn't exist
      */
+    // TODO, what id teh table id, check piazza
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+        int ind = this.fileNameArray.indexOf(name);
+        // not found
+        if (ind == -1) {
+            throw new NoSuchElementException();
+        }
+        int tmp = this.tableIdArray.get(ind);
+        return this.tableIdArray.get(ind);
     }
 
     /**
@@ -70,8 +108,12 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        // some code goes here
-        return null;
+        // some code goes
+        int ind = this.tableIdArray.indexOf(tableid);
+        if (ind == -1) {
+            throw new NoSuchElementException();
+        }
+        return this.fileArray.get(ind).getTupleDesc();
     }
 
     /**
@@ -82,27 +124,43 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        int ind = this.tableIdArray.indexOf(tableid);
+        if (ind == -1) {
+            throw new NoSuchElementException();
+        }
+        return this.fileArray.get(ind);
     }
 
     public String getPrimaryKey(int tableid) {
         // some code goes here
-        return null;
+        int ind = this.tableIdArray.indexOf(tableid);
+        if (ind == -1) {
+            throw new NoSuchElementException();
+        }
+        return this.pkArray.get(ind);
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+        return this.tableIdArray.iterator();
     }
 
     public String getTableName(int id) {
         // some code goes here
-        return null;
+        int ind = this.tableIdArray.indexOf(id);
+        if (ind == -1) {
+            throw new NoSuchElementException();
+        }
+        return this.fileNameArray.get(ind);
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
+        this.fileArray.clear();
+        this.fileNameArray.clear();
+        this.pkArray.clear();
+        this.tableIdArray.clear();
     }
     
     /**
