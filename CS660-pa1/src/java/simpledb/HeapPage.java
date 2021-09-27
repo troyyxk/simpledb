@@ -2,6 +2,7 @@ package simpledb;
 
 import java.util.*;
 import java.io.*;
+import java.lang.*;
 
 /**
  * Each instance of HeapPage stores data for one page of HeapFiles and 
@@ -67,8 +68,7 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
         // some code goes here
-        return 0;
-
+        return (int) Math.floor((BufferPool.getPageSize()*8) / (this.td.getSize() * 8 + 1));
     }
 
     /**
@@ -76,9 +76,8 @@ public class HeapPage implements Page {
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
     private int getHeaderSize() {        
-        
         // some code goes here
-        return 0;
+        return (int) Math.ceil(this.numSlots / 8);
                  
     }
     
@@ -112,7 +111,7 @@ public class HeapPage implements Page {
      */
     public HeapPageId getId() {
     // some code goes here
-    throw new UnsupportedOperationException("implement this");
+        return this.pid;
     }
 
     /**
@@ -282,7 +281,13 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        return 0;
+        int numEmptySlots = 0;
+        for (int i = 0; i < this.numSlots; i++) {
+            if (!this.isSlotUsed(i)) {
+                numEmptySlots++;
+            }
+        }
+        return numEmptySlots;
     }
 
     /**
@@ -290,6 +295,12 @@ public class HeapPage implements Page {
      */
     public boolean isSlotUsed(int i) {
         // some code goes here
+        int byteInd = i / 8;
+        int bitInd = i % 8;
+        byte curByte = header[byteInd];
+        if (((curByte >> bitInd) & 1) == 1) {
+            return true;
+        }
         return false;
     }
 
@@ -307,7 +318,33 @@ public class HeapPage implements Page {
      */
     public Iterator<Tuple> iterator() {
         // some code goes here
-        return null;
+        ArrayList<Tuple> usedTupleArray = new ArrayList<Tuple>();
+        for (int i = 0; i < this.numSlots; i++) {
+            if (isSlotUsed(i)) {
+                usedTupleArray.add(tuples[i]);
+            }
+        }
+        Iterator<Tuple> arrIt = usedTupleArray.iterator();
+        Iterator<Tuple> it = new Iterator<Tuple>() {
+
+            @Override
+            public boolean hasNext() {
+                return arrIt.hasNext();
+            }
+
+            @Override
+            public Tuple next() {
+                return arrIt.next();
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+
+        return it;
+
     }
 
 }
