@@ -71,6 +71,11 @@ public class BufferPool {
      */
     public  Page getPage(TransactionId tid, PageId pid, Permissions perm)
         throws TransactionAbortedException, DbException {
+        if (this.pageMap.containsKey(pid)) {
+            return this.pageMap.get(pid);
+        }
+        Page newPage = Database.getCatalog().getDatabaseFile(pid.getTableId()).readPage(pid);
+        this.pageMap.put(pid, newPage);
         return this.pageMap.get(pid);
     }
 
