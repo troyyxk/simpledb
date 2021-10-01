@@ -11,6 +11,12 @@ public class SeqScan implements DbIterator {
 
     private static final long serialVersionUID = 1L;
 
+    private TransactionId tid;
+    private int tableid;
+    private String tableAlias;
+    private DbFileIterator dbIterator;
+    private Catalog catalog;
+
     /**
      * Creates a sequential scan over the specified table as a part of the
      * specified transaction.
@@ -29,6 +35,11 @@ public class SeqScan implements DbIterator {
      */
     public SeqScan(TransactionId tid, int tableid, String tableAlias) {
         // some code goes here
+        this.tid = tid;
+        this.tableid = tableid;
+        this.tableAlias = tableAlias;
+        this.catalog = Database.getCatalog();
+        this.dbIterator = this.catalog.getDatabaseFile(this.tableid).iterator(this.tid);
     }
 
     /**
@@ -46,7 +57,7 @@ public class SeqScan implements DbIterator {
     public String getAlias()
     {
         // some code goes here
-        return null;
+        return this.tableAlias;
     }
 
     /**
@@ -63,6 +74,8 @@ public class SeqScan implements DbIterator {
      */
     public void reset(int tableid, String tableAlias) {
         // some code goes here
+        this.tid = tid;
+        this.tableAlias = tableAlias;
     }
 
     public SeqScan(TransactionId tid, int tableid) {
@@ -71,6 +84,7 @@ public class SeqScan implements DbIterator {
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
+        this.dbIterator.open();
     }
 
     /**
@@ -85,26 +99,40 @@ public class SeqScan implements DbIterator {
      */
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        TupleDesc curTD = this.catalog.getTupleDesc(this.tableid);
+        int fieldNum = curTD.numFields();
+        Type[] resultTypes = new Type[fieldNum];
+        String[] resultNames = new String[fieldNum];
+        Type curType;
+        String ogName;
+        for (int i = 0; i < fieldNum; i++) {
+            curType = curTD.getFieldType(i);
+            ogName = curTD.getFieldName(i);
+            resultTypes[i] = curType;
+            resultNames[i] = this.tableAlias + "." + ogName;
+        }
+        return new TupleDesc(resultTypes, resultNames);
     }
 
     public boolean hasNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        return false;
+        return this.dbIterator.hasNext();
     }
 
     public Tuple next() throws NoSuchElementException,
             TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        return this.dbIterator.next();
     }
 
     public void close() {
         // some code goes here
+        this.dbIterator.close();
     }
 
     public void rewind() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        this.dbIterator.rewind();
     }
 }

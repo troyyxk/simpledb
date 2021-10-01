@@ -68,7 +68,7 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
         // some code goes here
-        return (int) Math.floor((BufferPool.getPageSize()*8) / (this.td.getSize() * 8 + 1));
+        return (int) Math.floor(((double) BufferPool.getPageSize()*8) / (this.td.getSize() * 8 + 1));
     }
 
     /**
@@ -77,7 +77,8 @@ public class HeapPage implements Page {
      */
     private int getHeaderSize() {        
         // some code goes here
-        return (int) Math.ceil(this.numSlots / 8);
+//        return (int) Math.ceil(this.numSlots / 8);
+        return (int) Math.ceil(this.getNumTuples() / 8);
                  
     }
     
@@ -295,6 +296,9 @@ public class HeapPage implements Page {
      */
     public boolean isSlotUsed(int i) {
         // some code goes here
+        if ((i < 0) || (i >= getNumTuples())) {
+            return false;
+        }
         int byteInd = i / 8;
         int bitInd = i % 8;
         byte curByte = header[byteInd];
