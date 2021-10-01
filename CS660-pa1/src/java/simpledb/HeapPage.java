@@ -2,7 +2,6 @@ package simpledb;
 
 import java.util.*;
 import java.io.*;
-import java.lang.*;
 
 /**
  * Each instance of HeapPage stores data for one page of HeapFiles and 
@@ -68,18 +67,17 @@ public class HeapPage implements Page {
     */
     private int getNumTuples() {        
         // some code goes here
-        return (int) Math.floor(((double) BufferPool.getPageSize()*8) / (this.td.getSize() * 8 + 1));
+        return (int) Math.floor((double) (BufferPool.getPageSize() * 8) / (td.getSize() * 8 + 1));
+
     }
 
     /**
      * Computes the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      * @return the number of bytes in the header of a page in a HeapFile with each tuple occupying tupleSize bytes
      */
-    private int getHeaderSize() {        
+    private int getHeaderSize() {
         // some code goes here
-//        return (int) Math.ceil(this.numSlots / 8);
-        return (int) Math.ceil((double) this.getNumTuples() / 8);
-                 
+        return (int)Math.ceil((double) getNumTuples() / 8);
     }
     
     /** Return a view of this page before it was modified
@@ -103,7 +101,7 @@ public class HeapPage implements Page {
     public void setBeforeImage() {
         synchronized(oldDataLock)
         {
-        oldData = getPageData().clone();
+            oldData = getPageData().clone();
         }
     }
 
@@ -111,8 +109,8 @@ public class HeapPage implements Page {
      * @return the PageId associated with this page.
      */
     public HeapPageId getId() {
-    // some code goes here
-        return this.pid;
+        // some code goes here
+        return pid;
     }
 
     /**
@@ -265,7 +263,7 @@ public class HeapPage implements Page {
      */
     public void markDirty(boolean dirty, TransactionId tid) {
         // some code goes here
-	// not necessary for lab1
+	    // not necessary for lab1
     }
 
     /**
@@ -273,7 +271,7 @@ public class HeapPage implements Page {
      */
     public TransactionId isDirty() {
         // some code goes here
-	// Not necessary for lab1
+	    // Not necessary for lab1
         return null;      
     }
 
@@ -282,13 +280,13 @@ public class HeapPage implements Page {
      */
     public int getNumEmptySlots() {
         // some code goes here
-        int numEmptySlots = 0;
-        for (int i = 0; i < this.numSlots; i++) {
-            if (!this.isSlotUsed(i)) {
-                numEmptySlots++;
+        int cnt = 0;
+        for (int i = 0; i < numSlots; i++) {
+            if (!isSlotUsed(i)) {
+                cnt++;
             }
         }
-        return numEmptySlots;
+        return cnt;
     }
 
     /**
@@ -296,16 +294,11 @@ public class HeapPage implements Page {
      */
     public boolean isSlotUsed(int i) {
         // some code goes here
-        if ((i < 0) || (i >= getNumTuples())) {
+        if (i < 0 || i >= getNumTuples()) {
             return false;
         }
-        int byteInd = i / 8;
-        int bitInd = i % 8;
-        byte curByte = header[byteInd];
-        if (((curByte >> bitInd) & 1) == 1) {
-            return true;
-        }
-        return false;
+        int offset = i % 8;
+        return ((header[i / 8] >> offset) & 1) == 1;
     }
 
     /**
@@ -322,33 +315,24 @@ public class HeapPage implements Page {
      */
     public Iterator<Tuple> iterator() {
         // some code goes here
-        ArrayList<Tuple> usedTupleArray = new ArrayList<Tuple>();
-        for (int i = 0; i < this.numSlots; i++) {
-            if (isSlotUsed(i)) {
-                usedTupleArray.add(tuples[i]);
-            }
-        }
-        Iterator<Tuple> arrIt = usedTupleArray.iterator();
-        Iterator<Tuple> it = new Iterator<Tuple>() {
+        return new Iterator<>() {
+            int idx = 0;
 
             @Override
             public boolean hasNext() {
-                return arrIt.hasNext();
+                return idx < numSlots - getNumEmptySlots();
             }
 
             @Override
             public Tuple next() {
-                return arrIt.next();
+                return tuples[idx++];
             }
 
             @Override
             public void remove() {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException("Remove operation unsupported");
             }
         };
-
-        return it;
-
     }
 
 }

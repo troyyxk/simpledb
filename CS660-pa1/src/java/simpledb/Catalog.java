@@ -18,22 +18,52 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Catalog {
 
+    private class Table {
+
+        DbFile dbFile;
+
+        String name;
+
+        String pKeyField;
+
+        public Table(DbFile file, String name, String pKeyField) {
+            this.dbFile = file;
+            this.name = name;
+            this.pKeyField = pKeyField;
+        }
+
+        public int getTableId() {
+            return dbFile.getId();
+        }
+
+        public TupleDesc getTupleDescriptor() {
+            return dbFile.getTupleDesc();
+        }
+
+        public DbFile getDbFile() {
+            return dbFile;
+        }
+
+        public String getPrimaryKey() {
+            return pKeyField;
+        }
+
+        public String getTableName() {
+            return name;
+        }
+    }
+
+    Map<String, Table> nameTableMap;
+    Map<Integer, Table> idTableMap;
+
     /**
      * Constructor.
      * Creates a new, empty catalog.
      */
-    private ArrayList<DbFile> fileArray;
-    private ArrayList<String> fileNameArray;
-    private ArrayList<String> pkArray;
-    private ArrayList<Integer> tableIdArray;
-
-
     public Catalog() {
         // some code goes here
-        this.fileArray = new ArrayList<DbFile>();
-        this.fileNameArray = new ArrayList<String>();
-        this.pkArray = new ArrayList<String>();
-        this.tableIdArray = new ArrayList<Integer>();
+        nameTableMap = new HashMap<>();
+        idTableMap = new HashMap<>();
     }
 
     /**
@@ -47,28 +77,9 @@ public class Catalog {
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
-        int nameInd = this.fileNameArray.indexOf(name);
-        if (nameInd != -1) {
-            this.fileArray.remove(nameInd);
-            this.fileNameArray.remove(nameInd);
-            this.pkArray.remove(nameInd);
-            this.tableIdArray.remove(nameInd);
-        }
-
-        int tableId = file.getId();
-        int tableIdInd = this.tableIdArray.indexOf(tableId);
-        if (tableIdInd != -1) {
-            this.fileArray.remove(tableIdInd);
-            this.fileNameArray.remove(tableIdInd);
-            this.pkArray.remove(tableIdInd);
-            this.tableIdArray.remove(Integer.valueOf(tableId));
-        }
-
-
-        this.fileArray.add(file);
-        this.fileNameArray.add(name);
-        this.pkArray.add(pkeyField);
-        this.tableIdArray.add(file.getId());
+        Table newTable = new Table(file, name, pkeyField);
+        nameTableMap.put(name, newTable);
+        idTableMap.put(file.getId(), newTable);
     }
 
     public void addTable(DbFile file, String name) {
@@ -90,16 +101,12 @@ public class Catalog {
      * Return the id of the table with a specified name,
      * @throws NoSuchElementException if the table doesn't exist
      */
-    // TODO, what id teh table id, check piazza
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        int ind = this.fileNameArray.indexOf(name);
-        // not found
-        if (ind == -1) {
+        if (!nameTableMap.containsKey(name)) {
             throw new NoSuchElementException();
         }
-        int tmp = this.tableIdArray.get(ind);
-        return this.tableIdArray.get(ind);
+        return nameTableMap.get(name).getTableId();
     }
 
     /**
@@ -109,12 +116,11 @@ public class Catalog {
      * @throws NoSuchElementException if the table doesn't exist
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
-        // some code goes
-        int ind = this.tableIdArray.indexOf(tableid);
-        if (ind == -1) {
+        // some code goes here
+        if (!idTableMap.containsKey(tableid)) {
             throw new NoSuchElementException();
         }
-        return this.fileArray.get(ind).getTupleDesc();
+        return idTableMap.get(tableid).getTupleDescriptor();
     }
 
     /**
@@ -125,43 +131,32 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        int ind = this.tableIdArray.indexOf(tableid);
-        if (ind == -1) {
+        if (!idTableMap.containsKey(tableid)) {
             throw new NoSuchElementException();
         }
-        return this.fileArray.get(ind);
+        return idTableMap.get(tableid).getDbFile();
     }
 
     public String getPrimaryKey(int tableid) {
         // some code goes here
-        int ind = this.tableIdArray.indexOf(tableid);
-        if (ind == -1) {
-            throw new NoSuchElementException();
-        }
-        return this.pkArray.get(ind);
+        return idTableMap.containsKey(tableid) ? idTableMap.get(tableid).getPrimaryKey() : null;
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return this.tableIdArray.iterator();
+        return idTableMap.keySet().iterator();
     }
 
     public String getTableName(int id) {
         // some code goes here
-        int ind = this.tableIdArray.indexOf(id);
-        if (ind == -1) {
-            throw new NoSuchElementException();
-        }
-        return this.fileNameArray.get(ind);
+        return idTableMap.containsKey(id) ? idTableMap.get(id).getTableName() : null;
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
-        this.fileArray.clear();
-        this.fileNameArray.clear();
-        this.pkArray.clear();
-        this.tableIdArray.clear();
+        nameTableMap.clear();
+        idTableMap.clear();
     }
     
     /**
